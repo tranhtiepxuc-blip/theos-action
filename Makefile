@@ -1,16 +1,9 @@
-TARGET := iphone:clang:latest:15.0
-
 ARCHS = arm64 arm64e
+TARGET = iphone:clang:latest:14.0
 
-THEOS_PACKAGE_SCHEME = rootless
-
-include $(THEOS)/makefiles/common.mk
-
-TWEAK_NAME = FakePicker
-
-FakePicker_FILES = tweak.x
-FakePicker_CFLAGS = -fobjc-arc
-
-FakePicker_FRAMEWORKS = UIKit PhotosUI
+TWEAK_NAME = CamFakeLite
+CamFakeLite_FILES = Tweak.x
+CamFakeLite_FRAMEWORKS = UIKit PhotosUI Photos AVFoundation CoreGraphics
+CamFakeLite_CFLAGS = -fobjc-arc
 
 include $(THEOS_MAKE_PATH)/tweak.mk
