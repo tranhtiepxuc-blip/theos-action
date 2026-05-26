@@ -1,4 +1,6 @@
-TWEAK_NAME = CamFakeLite
-CamFakeLite_FILES = Tweak.x
-CamFakeLite_FRAMEWORKS = UIKit AVFoundation CoreGraphics
-include $(THEOS_MAKE_PATH)/tweak.mk
+Package: com.duc.camfakelite
+Name: CamFakeLite
+Depends: mobilesubstrate
+Version: 1.0.0
+Architecture: iphoneos-arm64
+Description: Che do chay ngam tu dong cho FMS Binh Thuan
