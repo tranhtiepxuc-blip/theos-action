@@ -6,11 +6,11 @@ THEOS_PACKAGE_SCHEME = rootless
 
 include $(THEOS)/makefiles/common.mk
 
-TWEAK_NAME = FakeMedia
+TWEAK_NAME = FakePicker
 
-FakeMedia_FILES = tweak.x
-FakeMedia_CFLAGS = -fobjc-arc
+FakePicker_FILES = tweak.x
+FakePicker_CFLAGS = -fobjc-arc
 
-FakeMedia_FRAMEWORKS = UIKit Photos PhotosUI AVFoundation
+FakePicker_FRAMEWORKS = UIKit PhotosUI
 
 include $(THEOS_MAKE_PATH)/tweak.mk
