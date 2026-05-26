@@ -1,45 +1,31 @@
 #import <UIKit/UIKit.h>
-#import <AVFoundation/AVFoundation.h>
 
-// Ép hệ thống luôn luôn ở trạng thái kích hoạt giả lập ngầm
-static BOOL isFakeImageMode = YES;
+// Hook trực tiếp vào Class và Hàm chuẩn xác quét từ Ghidra của bạn
+%hook ASDIManager
 
-@interface ASDFakeCameraController : NSObject
-+ (instancetype)sharedInstance;
-- (BOOL)isFakeCamera;
-- (void)setFakeCamera:(BOOL)value;
-- (NSString *)selectedVideoPath;
-@end
-
-// =======================================================
-// HOOK ĐỒNG BỘ HOÀN TOÀN LUỒNG XỬ LÝ CỦA DYLIB GỐC
-// =======================================================
-%hook ASDFakeCameraController
-
-- (BOOL)isFakeCamera {
-    // Luôn luôn trả về giá trị YES để kích hoạt lõi xử lý
+- (BOOL)fakeCameraEnabled {
+    // Luôn luôn kích hoạt chế độ Camera giả lập ngầm
     return YES;
-}
-
-- (void)setFakeCamera:(BOOL)value {
-    // Bỏ qua các lệnh thay đổi trạng thái, giữ nguyên chế độ hoạt động
-    %orig(YES);
-}
-
-- (NSString *)selectedVideoPath {
-    // Trỏ thẳng luồng dữ liệu hình ảnh về tệp tin fake.png trong thư mục ứng dụng
-    return [[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"fake.png"];
 }
 
 %end
 
-// =======================================================
-// HOOK ĐẢM BẢO LUỒNG ĐẦU RA HÌNH ẢNH HOẠT ĐỘNG
-// =======================================================
-%hook AVCaptureVideoDataOutput
+// Hook bổ trợ vào bộ nhớ cấu hình để dylib gốc tự tin đọc file ảnh
+%hook NSUserDefaults
 
-- (void)setSampleBufferDelegate:(id<AVCaptureVideoDataOutputSampleBufferDelegate>)sampleBufferDelegate queue:(dispatch_queue_t)sampleBufferQueue {
-    %orig(sampleBufferDelegate, sampleBufferQueue);
+- (BOOL)boolForKey:(NSString *)defaultName {
+    if ([defaultName isEqualToString:@"fake_camera"] || [defaultName isEqualToString:@"EnableFakeCamera"]) {
+        return YES; // Ép công tắc ngầm luôn BẬT
+    }
+    return %orig;
+}
+
+- (id)objectForKey:(NSString *)defaultName {
+    // Ép dylib gốc trỏ đường dẫn tìm ảnh về file fake.png nằm trong ruột App
+    if ([defaultName isEqualToString:@"fake_video_path"] || [defaultName isEqualToString:@"selected_file_path"]) {
+        return [[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"fake.png"];
+    }
+    return %orig;
 }
 
 %end
