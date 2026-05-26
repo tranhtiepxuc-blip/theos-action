@@ -1,6 +1,9 @@
-Package: com.duc.camfakelite
-Name: CamFakeLite
-Depends: mobilesubstrate
-Version: 2.0.0
+Package: com.your.fakepicker
+Name: FakeMedia
+Version: 1.0
 Architecture: iphoneos-arm64
-Description: Phien ban gop loi All-In-One chon anh truc tiep tu Album
+Description: Floating picker overlay
+Maintainer: You
+Author: You
+Section: Tweaks
+Depends: mobilesubstrate
