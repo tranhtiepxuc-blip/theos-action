@@ -1,28 +1,40 @@
+// tweak.x
+// Floating Fake Image Picker
+// Theos Logos
+
 #import <UIKit/UIKit.h>
 #import <PhotosUI/PhotosUI.h>
 
-@interface FMHandler : NSObject <PHPickerViewControllerDelegate>
+static UIImage *selectedFakeImage = nil;
+
+@interface FakePickerManager : NSObject
+<
+PHPickerViewControllerDelegate
+>
 @end
 
-@implementation FMHandler
+@implementation FakePickerManager
 
 + (instancetype)shared {
-    static FMHandler *obj;
+
+    static FakePickerManager *manager;
+
     static dispatch_once_t onceToken;
 
     dispatch_once(&onceToken, ^{
-        obj = [FMHandler new];
+        manager = [FakePickerManager new];
     });
 
-    return obj;
+    return manager;
 }
 
-- (UIViewController *)topVC {
+- (UIViewController *)topController {
 
     UIWindow *window =
     UIApplication.sharedApplication.windows.firstObject;
 
-    UIViewController *vc = window.rootViewController;
+    UIViewController *vc =
+    window.rootViewController;
 
     while (vc.presentedViewController) {
         vc = vc.presentedViewController;
@@ -31,16 +43,15 @@
     return vc;
 }
 
-- (void)openPicker {
+- (void)openGallery {
 
     PHPickerConfiguration *config =
     [[PHPickerConfiguration alloc] init];
 
     config.selectionLimit = 1;
-    config.filter = [PHPickerFilter anyFilterMatchingSubfilters:@[
-        PHPickerFilter.imagesFilter,
-        PHPickerFilter.videosFilter
-    ]];
+
+    config.filter =
+    [PHPickerFilter imagesFilter];
 
     PHPickerViewController *picker =
     [[PHPickerViewController alloc]
@@ -48,27 +59,48 @@
 
     picker.delegate = self;
 
-    [[self topVC]
+    [[self topController]
      presentViewController:picker
      animated:YES
      completion:nil];
 }
 
+#pragma mark - Picker Result
+
 - (void)picker:(PHPickerViewController *)picker
 didFinishPicking:(NSArray<PHPickerResult *> *)results {
 
-    [picker dismissViewControllerAnimated:YES completion:nil];
+    [picker dismissViewControllerAnimated:YES
+                               completion:nil];
 
     if (results.count == 0) return;
 
-    PHPickerResult *result = results.firstObject;
+    PHPickerResult *result =
+    results.firstObject;
 
-    NSLog(@"Selected media: %@", result);
+    NSItemProvider *provider =
+    result.itemProvider;
+
+    if ([provider canLoadObjectOfClass:[UIImage class]]) {
+
+        [provider loadObjectOfClass:[UIImage class]
+                  completionHandler:
+        ^(UIImage *image, NSError *error) {
+
+            if (!image) return;
+
+            selectedFakeImage = image;
+
+            NSLog(@"[FakePicker] Image Selected");
+        }];
+    }
 }
 
 @end
 
-static UIButton *fmButton;
+#pragma mark - Floating Button
+
+static UIButton *floatingButton;
 
 static void createFloatingButton() {
 
@@ -77,31 +109,39 @@ static void createFloatingButton() {
 
     if (!window) return;
 
-    fmButton =
+    floatingButton =
     [UIButton buttonWithType:UIButtonTypeSystem];
 
-    fmButton.frame = CGRectMake(40, 220, 65, 65);
+    floatingButton.frame =
+    CGRectMake(30, 250, 65, 65);
 
-    fmButton.backgroundColor =
-    [UIColor systemBlueColor];
+    floatingButton.backgroundColor =
+    UIColor.systemBlueColor;
 
-    fmButton.layer.cornerRadius = 32.5;
+    floatingButton.layer.cornerRadius = 32.5;
 
-    [fmButton setTitle:@"📁"
-              forState:UIControlStateNormal];
+    floatingButton.clipsToBounds = YES;
 
-    fmButton.titleLabel.font =
+    [floatingButton setTitle:@"📷"
+                    forState:UIControlStateNormal];
+
+    floatingButton.titleLabel.font =
     [UIFont systemFontOfSize:28];
 
-    [fmButton addTarget:[FMHandler shared]
-                 action:@selector(openPicker)
-       forControlEvents:UIControlEventTouchUpInside];
+    [floatingButton addTarget:
+     [FakePickerManager shared]
+                          action:
+     @selector(openGallery)
+                forControlEvents:
+     UIControlEventTouchUpInside];
 
-    [window addSubview:fmButton];
+    [window addSubview:floatingButton];
 }
 
+#pragma mark - Init
+
 __attribute__((constructor))
-static void initFakeMedia() {
+static void initFakePicker() {
 
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
                                  1 * NSEC_PER_SEC),
